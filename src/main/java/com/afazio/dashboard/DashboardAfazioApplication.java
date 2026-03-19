@@ -1,9 +1,12 @@
 package com.afazio.dashboard;
 
+import com.afazio.dashboard.reporting.application.TeacherProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
+@EnableConfigurationProperties(TeacherProperties.class)
 public class DashboardAfazioApplication {
 
   public static void main(String[] args) {
