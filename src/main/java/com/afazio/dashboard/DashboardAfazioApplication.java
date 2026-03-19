@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class DashboardAfazioApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(DashboardAfazioApplication.class, args);
-	}
+  public static void main(String[] args) {
+    SpringApplication.run(DashboardAfazioApplication.class, args);
+  }
 
 }

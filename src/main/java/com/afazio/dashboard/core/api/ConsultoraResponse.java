@@ -1,4 +1,11 @@
 package com.afazio.dashboard.core.api;
 
-public class ConsultaResponse {
+public record ConsultoraResponse(
+  Long id,
+  String nombre,
+  String descripcion,
+  boolean activa,
+  boolean requiereReporteExcel,
+  String googleCalendarId
+) {
 }
