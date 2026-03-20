@@ -17,12 +17,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-public class ListarClasesDelDiaService {
+public class ListarClasesPorPeriodoService {
 
   private final ClaseRepository claseRepository;
   private final AsistenciaRepository asistenciaRepository;
 
-  public ListarClasesDelDiaService(
+  public ListarClasesPorPeriodoService(
     ClaseRepository claseRepository,
     AsistenciaRepository asistenciaRepository
   ) {
@@ -31,9 +31,17 @@ public class ListarClasesDelDiaService {
   }
 
   @Transactional(readOnly = true)
-  public List<ClaseDelDiaResponse> ejecutar(LocalDate fecha) {
-    OffsetDateTime from = fecha.atStartOfDay().atOffset(ZoneOffset.ofHours(-3));
-    OffsetDateTime to = fecha.plusDays(1).atStartOfDay().atOffset(ZoneOffset.ofHours(-3)).minusNanos(1);
+  public List<ClaseDelDiaResponse> ejecutar(LocalDate fromDate, LocalDate toDate) {
+    if (fromDate == null || toDate == null) {
+      throw new IllegalArgumentException("Las fechas from y to son obligatorias");
+    }
+
+    if (toDate.isBefore(fromDate)) {
+      throw new IllegalArgumentException("La fecha to no puede ser anterior a from");
+    }
+
+    OffsetDateTime from = fromDate.atStartOfDay().atOffset(ZoneOffset.ofHours(-3));
+    OffsetDateTime to = toDate.plusDays(1).atStartOfDay().atOffset(ZoneOffset.ofHours(-3)).minusNanos(1);
 
     List<Clase> clases = claseRepository.findByFechaInicioBetweenOrderByFechaInicioAsc(from, to);
 

@@ -1,13 +1,10 @@
 package com.afazio.dashboard.reporting.application;
 
 import com.afazio.dashboard.billing.application.ObtenerTarifaVigenteService;
-import com.afazio.dashboard.core.domain.Asistencia;
-import com.afazio.dashboard.core.domain.AsistenciaEstado;
 import com.afazio.dashboard.core.domain.Clase;
 import com.afazio.dashboard.core.domain.ClaseEstado;
 import com.afazio.dashboard.core.domain.Consultora;
 import com.afazio.dashboard.core.domain.TarifaConsultora;
-import com.afazio.dashboard.core.infrastructure.AsistenciaRepository;
 import com.afazio.dashboard.core.infrastructure.ClaseRepository;
 import com.afazio.dashboard.core.infrastructure.ConsultoraRepository;
 import org.springframework.stereotype.Service;
@@ -30,20 +27,17 @@ public class ConstruirReporteHorasExcelService {
 
   private final ConsultoraRepository consultoraRepository;
   private final ClaseRepository claseRepository;
-  private final AsistenciaRepository asistenciaRepository;
   private final ObtenerTarifaVigenteService obtenerTarifaVigenteService;
   private final TeacherProperties teacherProperties;
 
   public ConstruirReporteHorasExcelService(
     ConsultoraRepository consultoraRepository,
     ClaseRepository claseRepository,
-    AsistenciaRepository asistenciaRepository,
     ObtenerTarifaVigenteService obtenerTarifaVigenteService,
     TeacherProperties teacherProperties
   ) {
     this.consultoraRepository = consultoraRepository;
     this.claseRepository = claseRepository;
-    this.asistenciaRepository = asistenciaRepository;
     this.obtenerTarifaVigenteService = obtenerTarifaVigenteService;
     this.teacherProperties = teacherProperties;
   }
@@ -58,18 +52,12 @@ public class ConstruirReporteHorasExcelService {
 
     List<Clase> clases = claseRepository.findByFechaInicioBetweenOrderByFechaInicioAsc(from, to).stream()
       .filter(clase -> clase.getConsultora().getId().equals(consultoraId))
-      .filter(clase -> clase.getEstado() != ClaseEstado.CANCELADA)
+      .filter(clase -> clase.getEstado() == ClaseEstado.DICTADA)
       .toList();
 
     Map<String, AcumuladorFila> agrupado = new LinkedHashMap<>();
 
     for (Clase clase : clases) {
-      Asistencia asistencia = asistenciaRepository.findByClase(clase).orElse(null);
-
-      if (asistencia == null || asistencia.getEstado() != AsistenciaEstado.ASISTIO) {
-        continue;
-      }
-
       TarifaConsultora tarifa = obtenerTarifaVigenteService.ejecutar(
         consultora,
         clase.getFechaInicio().toLocalDate()

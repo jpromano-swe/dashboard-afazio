@@ -17,6 +17,7 @@ public class StubCalendarProvider implements CalendarProvider {
         "google-event-1",
         "Curso A2 Accenture",
         "Clase inicial de prueba",
+        null,
         from.plusHours(2),
         from.plusHours(4),
         "Accenture"

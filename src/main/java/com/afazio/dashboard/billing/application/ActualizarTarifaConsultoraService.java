@@ -11,12 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Locale;
 
 @Service
-public class CrearTarifaConsultoraService {
+public class ActualizarTarifaConsultoraService {
 
   private final ConsultoraRepository consultoraRepository;
   private final TarifaConsultoraRepository tarifaConsultoraRepository;
 
-  public CrearTarifaConsultoraService(
+  public ActualizarTarifaConsultoraService(
     ConsultoraRepository consultoraRepository,
     TarifaConsultoraRepository tarifaConsultoraRepository
   ) {
@@ -25,15 +25,17 @@ public class CrearTarifaConsultoraService {
   }
 
   @Transactional
-  public TarifaConsultoraResponse ejecutar(CrearTarifaConsultoraCommand command) {
+  public TarifaConsultoraResponse ejecutar(Long tarifaId, CrearTarifaConsultoraCommand command) {
+    TarifaConsultora tarifa = tarifaConsultoraRepository.findById(tarifaId)
+      .orElseThrow(() -> new IllegalArgumentException("No existe la tarifa con el id " + tarifaId));
+
     Consultora consultora = consultoraRepository.findById(command.consultoraId())
       .orElseThrow(() -> new IllegalArgumentException(
         "No existe la consultora con el id " + command.consultoraId()
       ));
 
-    validar(command, consultora, null);
+    validar(command, consultora, tarifaId);
 
-    TarifaConsultora tarifa = new TarifaConsultora();
     tarifa.setConsultora(consultora);
     tarifa.setMontoPorHora(command.montoPorHora());
     tarifa.setMoneda(command.moneda() != null ? command.moneda().toUpperCase(Locale.ROOT) : "ARS");
@@ -71,7 +73,7 @@ public class CrearTarifaConsultoraService {
     }
 
     boolean hasOverlap = tarifaConsultoraRepository.findByConsultoraOrderByVigenteDesdeDesc(consultora).stream()
-      .filter(tarifa -> tarifaIdAExcluir == null || !tarifa.getId().equals(tarifaIdAExcluir))
+      .filter(tarifa -> !tarifa.getId().equals(tarifaIdAExcluir))
       .anyMatch(tarifa -> seSuperpone(
         command.vigenteDesde(),
         command.vigenteHasta(),

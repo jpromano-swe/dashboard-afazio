@@ -19,7 +19,7 @@ public interface TarifaConsultoraRepository extends JpaRepository<TarifaConsulto
             where t.consultora = :consultora
               and t.vigenteDesde <= :fecha
               and (t.vigenteHasta is null or t.vigenteHasta >= :fecha)
-            order by t.vigenteDesde desc
+            order by t.vigenteDesde desc, t.id desc
             """)
   List<TarifaConsultora> findVigentesByConsultoraAndFecha(Consultora consultora, LocalDate fecha);
 }

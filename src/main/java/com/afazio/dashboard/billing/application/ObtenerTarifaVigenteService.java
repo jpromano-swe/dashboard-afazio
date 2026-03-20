@@ -28,12 +28,6 @@ public class ObtenerTarifaVigenteService {
       );
     }
 
-    if (tarifas.size() > 1) {
-      throw new IllegalArgumentException(
-        "Hay más de una tarifa vigente para la consultora " + consultora.getNombre() + " en la fecha " + fecha
-      );
-    }
-
     return tarifas.getFirst();
   }
 }

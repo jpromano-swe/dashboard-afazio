@@ -48,6 +48,7 @@ public class SincronizarClasesService {
       clase.setConsultora(consultora);
       clase.setTitulo(event.title());
       clase.setDescripcion(event.description());
+      clase.setMeetingUrl(event.meetingUrl());
       clase.setFechaInicio(event.startAt());
       clase.setFechaFin(event.endAt());
       clase.setDuracionMinutos((int) Duration.between(event.startAt(), event.endAt()).toMinutes());

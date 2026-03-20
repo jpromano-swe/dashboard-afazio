@@ -1,12 +1,9 @@
 package com.afazio.dashboard.billing.application;
 
 import com.afazio.dashboard.billing.api.IngresoPorClaseResponse;
-import com.afazio.dashboard.core.domain.Asistencia;
-import com.afazio.dashboard.core.domain.AsistenciaEstado;
 import com.afazio.dashboard.core.domain.Clase;
 import com.afazio.dashboard.core.domain.ClaseEstado;
 import com.afazio.dashboard.core.domain.TarifaConsultora;
-import com.afazio.dashboard.core.infrastructure.AsistenciaRepository;
 import com.afazio.dashboard.core.infrastructure.ClaseRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,16 +16,13 @@ import java.time.LocalDate;
 public class CalcularIngresoPorClaseService {
 
   private final ClaseRepository claseRepository;
-  private final AsistenciaRepository asistenciaRepository;
   private final ObtenerTarifaVigenteService obtenerTarifaVigenteService;
 
   public CalcularIngresoPorClaseService(
     ClaseRepository claseRepository,
-    AsistenciaRepository asistenciaRepository,
     ObtenerTarifaVigenteService obtenerTarifaVigenteService
   ) {
     this.claseRepository = claseRepository;
-    this.asistenciaRepository = asistenciaRepository;
     this.obtenerTarifaVigenteService = obtenerTarifaVigenteService;
   }
 
@@ -37,15 +31,8 @@ public class CalcularIngresoPorClaseService {
     Clase clase = claseRepository.findById(claseId)
       .orElseThrow(() -> new IllegalArgumentException("No existe la clase con el id " + claseId));
 
-    if (clase.getEstado() == ClaseEstado.CANCELADA) {
-      throw new IllegalArgumentException("La clase está cancelada y no genera ingresos");
-    }
-
-    Asistencia asistencia = asistenciaRepository.findByClase(clase)
-      .orElseThrow(() -> new IllegalArgumentException("La clase no tiene asistencia registrada"));
-
-    if (asistencia.getEstado() != AsistenciaEstado.ASISTIO) {
-      throw new IllegalArgumentException("La clase no está marcada como ASISTIO y no genera ingresos");
+    if (clase.getEstado() != ClaseEstado.DICTADA) {
+      throw new IllegalArgumentException("La clase debe estar DICTADA para generar ingresos");
     }
 
     LocalDate fechaClase = clase.getFechaInicio().toLocalDate();

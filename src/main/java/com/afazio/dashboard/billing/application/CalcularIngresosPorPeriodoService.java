@@ -2,12 +2,9 @@ package com.afazio.dashboard.billing.application;
 
 import com.afazio.dashboard.billing.api.IngresoDetalleResponse;
 import com.afazio.dashboard.billing.api.IngresoPeriodoResponse;
-import com.afazio.dashboard.core.domain.Asistencia;
-import com.afazio.dashboard.core.domain.AsistenciaEstado;
 import com.afazio.dashboard.core.domain.Clase;
 import com.afazio.dashboard.core.domain.ClaseEstado;
 import com.afazio.dashboard.core.domain.TarifaConsultora;
-import com.afazio.dashboard.core.infrastructure.AsistenciaRepository;
 import com.afazio.dashboard.core.infrastructure.ClaseRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,16 +21,13 @@ import java.util.List;
 public class CalcularIngresosPorPeriodoService {
 
   private final ClaseRepository claseRepository;
-  private final AsistenciaRepository asistenciaRepository;
   private final ObtenerTarifaVigenteService obtenerTarifaVigenteService;
 
   public CalcularIngresosPorPeriodoService(
     ClaseRepository claseRepository,
-    AsistenciaRepository asistenciaRepository,
     ObtenerTarifaVigenteService obtenerTarifaVigenteService
   ) {
     this.claseRepository = claseRepository;
-    this.asistenciaRepository = asistenciaRepository;
     this.obtenerTarifaVigenteService = obtenerTarifaVigenteService;
   }
 
@@ -56,13 +50,7 @@ public class CalcularIngresosPorPeriodoService {
     BigDecimal total = BigDecimal.ZERO;
 
     for (Clase clase : clases) {
-      if (clase.getEstado() == ClaseEstado.CANCELADA) {
-        continue;
-      }
-
-      Asistencia asistencia = asistenciaRepository.findByClase(clase).orElse(null);
-
-      if (asistencia == null || asistencia.getEstado() != AsistenciaEstado.ASISTIO) {
+      if (clase.getEstado() != ClaseEstado.DICTADA) {
         continue;
       }
 

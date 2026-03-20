@@ -17,11 +17,18 @@ public class Clase extends AuditableEntity {
   @JoinColumn(name = "consultora_id", nullable = false)
   private Consultora consultora;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "curso_id")
+  private Curso curso;
+
   @Column (nullable = false, length = 180)
   private String titulo;
 
   @Column (length = 1000)
   private String descripcion;
+
+  @Column(name = "meeting_url", length = 1000)
+  private String meetingUrl;
 
   @Column(name = "fecha_inicio", nullable = false)
   private OffsetDateTime fechaInicio;
@@ -42,6 +49,19 @@ public class Clase extends AuditableEntity {
   @Column(name = "sincronizada_en")
   private OffsetDateTime sincronizadaEn;
 
+  @Column(length = 180)
+  private String empresa;
+
+  @Column(length = 180)
+  private String grupo;
+
+  @Column(nullable = false)
+  private boolean facturable;
+
+  @Column(name = "clasificacion_confirmada", nullable = false)
+  private boolean clasificacionConfirmada;
+
+
   public Long getId() {
     return id;
   }
@@ -52,6 +72,14 @@ public class Clase extends AuditableEntity {
 
   public void setConsultora(Consultora consultora) {
     this.consultora = consultora;
+  }
+
+  public Curso getCurso() {
+    return curso;
+  }
+
+  public void setCurso(Curso curso) {
+    this.curso = curso;
   }
 
   public String getTitulo() {
@@ -68,6 +96,14 @@ public class Clase extends AuditableEntity {
 
   public void setDescripcion(String descripcion) {
     this.descripcion = descripcion;
+  }
+
+  public String getMeetingUrl() {
+    return meetingUrl;
+  }
+
+  public void setMeetingUrl(String meetingUrl) {
+    this.meetingUrl = meetingUrl;
   }
 
   public OffsetDateTime getFechaInicio() {
@@ -117,4 +153,37 @@ public class Clase extends AuditableEntity {
   public void setSincronizadaEn(OffsetDateTime sincronizadaEn) {
     this.sincronizadaEn = sincronizadaEn;
   }
+
+  public String getEmpresa() {
+    return empresa;
+  }
+
+  public void setEmpresa(String empresa) {
+    this.empresa = empresa;
+  }
+
+  public String getGrupo() {
+    return grupo;
+  }
+
+  public void setGrupo(String grupo) {
+    this.grupo = grupo;
+  }
+
+  public boolean isFacturable() {
+    return facturable;
+  }
+
+  public void setFacturable(boolean facturable) {
+    this.facturable = facturable;
+  }
+
+  public boolean isClasificacionConfirmada() {
+    return clasificacionConfirmada;
+  }
+
+  public void setClasificacionConfirmada(boolean clasificacionConfirmada) {
+    this.clasificacionConfirmada = clasificacionConfirmada;
+  }
+
 }
