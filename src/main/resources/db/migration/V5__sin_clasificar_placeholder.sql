@@ -1,5 +1,5 @@
-insert into consultora (nombre, descripcion, activa, requiere_reporte_excel, google_calendar_id)
-select 'Sin clasificar', 'Placeholder para clases importadas sin clasificar', false, false, null
+insert into consultora (nombre, descripcion, activa, google_calendar_id)
+select 'Sin clasificar', 'Placeholder para clases importadas sin clasificar', false, null
 where not exists (
   select 1
   from consultora
