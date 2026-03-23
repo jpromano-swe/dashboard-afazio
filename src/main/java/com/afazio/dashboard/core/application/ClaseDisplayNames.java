@@ -20,4 +20,17 @@ public final class ClaseDisplayNames {
 
     return clase.getConsultora() != null ? clase.getConsultora().getNombre() : PLACEHOLDER_CONSULTORA_NOMBRE;
   }
+
+  public static boolean esSinClasificar(Clase clase) {
+    if (clase == null) {
+      return true;
+    }
+
+    if (!clase.isClasificacionConfirmada()) {
+      return true;
+    }
+
+    return clase.getConsultora() == null
+      || PLACEHOLDER_CONSULTORA_NOMBRE.equalsIgnoreCase(clase.getConsultora().getNombre());
+  }
 }

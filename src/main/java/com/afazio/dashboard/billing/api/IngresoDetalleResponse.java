@@ -15,6 +15,7 @@ public record IngresoDetalleResponse(
   BigDecimal montoPorHora,
   String moneda,
   boolean facturable,
+  boolean sinClasificar,
   BigDecimal importeCalculado
 ) {
 }

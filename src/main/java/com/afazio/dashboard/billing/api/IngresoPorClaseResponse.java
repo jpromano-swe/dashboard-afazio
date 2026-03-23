@@ -15,6 +15,7 @@ public record IngresoPorClaseResponse(
   BigDecimal montoPorHora,
   String moneda,
   boolean facturable,
+  boolean sinClasificar,
   BigDecimal importeCalculado
 ) {
 }

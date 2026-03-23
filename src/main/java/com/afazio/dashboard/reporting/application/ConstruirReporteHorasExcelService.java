@@ -1,6 +1,7 @@
 package com.afazio.dashboard.reporting.application;
 
 import com.afazio.dashboard.billing.application.ObtenerTarifaVigenteService;
+import com.afazio.dashboard.core.application.ClaseDisplayNames;
 import com.afazio.dashboard.core.domain.Clase;
 import com.afazio.dashboard.core.domain.ClaseEstado;
 import com.afazio.dashboard.core.domain.Consultora;
@@ -58,10 +59,13 @@ public class ConstruirReporteHorasExcelService {
     Map<String, AcumuladorFila> agrupado = new LinkedHashMap<>();
 
     for (Clase clase : clases) {
-      TarifaConsultora tarifa = obtenerTarifaVigenteService.ejecutar(
-        consultora,
-        clase.getFechaInicio().toLocalDate()
-      );
+      boolean sinClasificar = ClaseDisplayNames.esSinClasificar(clase);
+      TarifaConsultora tarifa = sinClasificar
+        ? null
+        : obtenerTarifaVigenteService.ejecutar(
+          consultora,
+          clase.getFechaInicio().toLocalDate()
+        );
 
       BigDecimal duracionHoras = BigDecimal.valueOf(clase.getDuracionMinutos())
         .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
@@ -77,7 +81,10 @@ public class ConstruirReporteHorasExcelService {
         ? clase.getGrupo()
         : "";
 
-      String key = empresa + "|" + grupo + "|" + horario + "|" + tarifa.getMontoPorHora();
+      BigDecimal honorarios = tarifa != null ? tarifa.getMontoPorHora() : BigDecimal.ZERO;
+      String moneda = tarifa != null ? tarifa.getMoneda() : "ARS";
+
+      String key = empresa + "|" + grupo + "|" + horario + "|" + honorarios;
 
       AcumuladorFila acumulador = agrupado.computeIfAbsent(
         key,
@@ -86,8 +93,8 @@ public class ConstruirReporteHorasExcelService {
           grupo,
           horario,
           duracionHoras,
-          tarifa.getMontoPorHora(),
-          tarifa.getMoneda()
+          honorarios,
+          moneda
         )
       );
 

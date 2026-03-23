@@ -70,11 +70,18 @@ public class CalcularIngresosPorPeriodoService {
       }
 
       LocalDate fechaClase = clase.getFechaInicio().toLocalDate();
-      TarifaConsultora tarifa = obtenerTarifaVigenteService.ejecutar(clase.getConsultora(), fechaClase);
+      boolean sinClasificar = ClaseDisplayNames.esSinClasificar(clase);
+      TarifaConsultora tarifa = sinClasificar
+        ? null
+        : obtenerTarifaVigenteService.ejecutar(clase.getConsultora(), fechaClase);
 
-      BigDecimal importe = tarifa.getMontoPorHora()
+      BigDecimal montoPorHora = tarifa != null ? tarifa.getMontoPorHora() : BigDecimal.ZERO;
+      String moneda = tarifa != null ? tarifa.getMoneda() : "ARS";
+      BigDecimal importe = tarifa != null
+        ? tarifa.getMontoPorHora()
         .multiply(BigDecimal.valueOf(clase.getDuracionMinutos()))
-        .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP);
+        .divide(BigDecimal.valueOf(60), 2, RoundingMode.HALF_UP)
+        : BigDecimal.ZERO;
 
       detalle.add(new IngresoDetalleResponse(
         clase.getId(),
@@ -85,9 +92,10 @@ public class CalcularIngresosPorPeriodoService {
         clase.getTitulo(),
         fechaClase,
         clase.getDuracionMinutos(),
-        tarifa.getMontoPorHora(),
-        tarifa.getMoneda(),
+        montoPorHora,
+        moneda,
         clase.isFacturable(),
+        sinClasificar,
         importe
       ));
 
