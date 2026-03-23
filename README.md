@@ -241,6 +241,11 @@ El perfil local apunta a:
 curl http://localhost:8080/actuator/health
 ```
 
+### OAuth Google
+
+El backend redirige al frontend configurado en `APP_FRONT_URL` después del login.
+En local, el valor por defecto es `http://localhost:5173`.
+
 ## Docker
 
 ### Archivos clave
@@ -268,12 +273,15 @@ docker compose up --build
 - mantener PostgreSQL persistente con volumen
 - usar `.env` o variables de entorno del entorno de despliegue
 - cargar credenciales reales de Google OAuth solo en ese entorno
+- configurar `APP_FRONT_URL` con la URL pública del frontend
+- configurar en Google OAuth el redirect URI `https://<api>/login/oauth2/code/google`
 - validar siempre `/actuator/health` antes de publicar tráfico
 
 ## Variables de entorno
 
 - `APP_GOOGLE_CALENDAR_ID`: calendario compartido a sincronizar
 - `APP_CORS_ALLOWED_ORIGINS`: orígenes permitidos por CORS
+- `APP_FRONT_URL`: URL del frontend a donde vuelve el login OAuth
 
 ## Estándares técnicos
 

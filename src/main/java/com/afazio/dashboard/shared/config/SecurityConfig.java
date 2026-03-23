@@ -31,7 +31,7 @@ public class SecurityConfig {
 
   @Bean
   @Order(2)
-  SecurityFilterChain oauthSecurityFilterChain(HttpSecurity http) throws Exception {
+  SecurityFilterChain oauthSecurityFilterChain(HttpSecurity http, FrontProperties frontProperties) throws Exception {
     return http
       .securityMatcher("/oauth2/**", "/login/**", "/google/**")
       .cors(Customizer.withDefaults())
@@ -40,7 +40,7 @@ public class SecurityConfig {
         .anyRequest().authenticated()
       )
       .oauth2Login(oauth -> oauth
-        .defaultSuccessUrl("/actuator/health", true)
+        .defaultSuccessUrl(frontProperties.url(), true)
       )
       .build();
   }
