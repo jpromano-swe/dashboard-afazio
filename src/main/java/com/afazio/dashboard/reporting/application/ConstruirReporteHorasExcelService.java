@@ -70,13 +70,20 @@ public class ConstruirReporteHorasExcelService {
         + " a "
         + clase.getFechaFin().toLocalTime().format(HORARIO_FORMATTER);
 
-      String key = clase.getTitulo() + "|" + horario + "|" + tarifa.getMontoPorHora();
+      String empresa = clase.getEmpresa() != null && !clase.getEmpresa().isBlank()
+        ? clase.getEmpresa()
+        : consultora.getNombre();
+      String grupo = clase.getGrupo() != null && !clase.getGrupo().isBlank()
+        ? clase.getGrupo()
+        : "";
+
+      String key = empresa + "|" + grupo + "|" + horario + "|" + tarifa.getMontoPorHora();
 
       AcumuladorFila acumulador = agrupado.computeIfAbsent(
         key,
         ignored -> new AcumuladorFila(
-          consultora.getNombre(),
-          clase.getTitulo(),
+          empresa,
+          grupo,
           horario,
           duracionHoras,
           tarifa.getMontoPorHora(),

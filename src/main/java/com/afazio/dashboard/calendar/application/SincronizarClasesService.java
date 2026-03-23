@@ -10,7 +10,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class SincronizarClasesService {
@@ -33,6 +35,7 @@ public class SincronizarClasesService {
 
   public int ejecutar(OffsetDateTime from, OffsetDateTime to) {
     List<CalendarClassEvent> events = calendarProvider.getClassesBetween(from, to);
+    Set<String> idsPresentes = construirIdsPresentes(events);
 
     int processed = 0;
 
@@ -59,6 +62,26 @@ public class SincronizarClasesService {
       claseRepository.save(clase);
       processed++;
     }
+    limpiarClasesFueraDelFeed(from, to, idsPresentes);
     return processed;
+  }
+
+  private void limpiarClasesFueraDelFeed(OffsetDateTime from, OffsetDateTime to, Set<String> idsPresentes) {
+    List<Clase> clasesFueraDelFeed = claseRepository.findByFechaInicioBetweenOrderByFechaInicioAsc(from, to).stream()
+      .filter(clase -> clase.getGoogleEventId() != null && !clase.getGoogleEventId().isBlank())
+      .filter(clase -> !idsPresentes.contains(clase.getGoogleEventId()))
+      .toList();
+
+    if (!clasesFueraDelFeed.isEmpty()) {
+      claseRepository.deleteAll(clasesFueraDelFeed);
+    }
+  }
+
+  private Set<String> construirIdsPresentes(List<CalendarClassEvent> events) {
+    Set<String> ids = new LinkedHashSet<>();
+    for (CalendarClassEvent event : events) {
+      ids.add(event.externalEventId());
+    }
+    return ids;
   }
 }

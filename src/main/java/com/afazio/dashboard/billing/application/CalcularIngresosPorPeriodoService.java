@@ -2,6 +2,7 @@ package com.afazio.dashboard.billing.application;
 
 import com.afazio.dashboard.billing.api.IngresoDetalleResponse;
 import com.afazio.dashboard.billing.api.IngresoPeriodoResponse;
+import com.afazio.dashboard.core.application.ClaseDisplayNames;
 import com.afazio.dashboard.core.domain.Clase;
 import com.afazio.dashboard.core.domain.ClaseEstado;
 import com.afazio.dashboard.core.domain.TarifaConsultora;
@@ -32,7 +33,7 @@ public class CalcularIngresosPorPeriodoService {
   }
 
   @Transactional(readOnly = true)
-  public IngresoPeriodoResponse ejecutar(LocalDate from, LocalDate to) {
+  public IngresoPeriodoResponse ejecutar(LocalDate from, LocalDate to, Long consultoraId, Long cursoId) {
     if (from == null || to == null) {
       throw new IllegalArgumentException("Las fechas from y to son obligatorias");
     }
@@ -54,6 +55,20 @@ public class CalcularIngresosPorPeriodoService {
         continue;
       }
 
+      if (!clase.isFacturable()) {
+        continue;
+      }
+
+      if (consultoraId != null && !clase.getConsultora().getId().equals(consultoraId)) {
+        continue;
+      }
+
+      if (cursoId != null) {
+        if (clase.getCurso() == null || !clase.getCurso().getId().equals(cursoId)) {
+          continue;
+        }
+      }
+
       LocalDate fechaClase = clase.getFechaInicio().toLocalDate();
       TarifaConsultora tarifa = obtenerTarifaVigenteService.ejecutar(clase.getConsultora(), fechaClase);
 
@@ -63,12 +78,16 @@ public class CalcularIngresosPorPeriodoService {
 
       detalle.add(new IngresoDetalleResponse(
         clase.getId(),
-        clase.getConsultora().getNombre(),
+        clase.getCurso() != null ? clase.getCurso().getId() : null,
+        clase.getEmpresa(),
+        clase.getGrupo(),
+        ClaseDisplayNames.consultoraNombreVisible(clase),
         clase.getTitulo(),
         fechaClase,
         clase.getDuracionMinutos(),
         tarifa.getMontoPorHora(),
         tarifa.getMoneda(),
+        clase.isFacturable(),
         importe
       ));
 

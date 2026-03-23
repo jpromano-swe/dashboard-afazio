@@ -11,4 +11,5 @@ public interface CursoRepository extends JpaRepository<Curso, Long> {
   List<Curso> findAllByOrderByEmpresaAscGrupoAsc();
   List<Curso> findByConsultoraOrderByEmpresaAscGrupoAsc(Consultora consultora);
   Optional<Curso> findByConsultoraAndEmpresaAndGrupo(Consultora consultora, String empresa, String grupo);
+  Optional<Curso> findByConsultoraAndEmpresaAndGrupoAndIdNot(Consultora consultora, String empresa, String grupo, Long id);
 }

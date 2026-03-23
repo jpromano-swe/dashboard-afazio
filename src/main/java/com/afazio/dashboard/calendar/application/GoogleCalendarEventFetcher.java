@@ -27,73 +27,87 @@ public class GoogleCalendarEventFetcher {
 
   public List<CalendarClassEvent> fetch(
     OAuth2AuthorizedClient authorizedClient,
+    String calendarId,
+    String consultoraNombre,
     OffsetDateTime from,
     OffsetDateTime to
   ) {
-    Object response = restClient.get()
-      .uri(uriBuilder -> uriBuilder
-        .path("/calendar/v3/calendars/primary/events")
-        .queryParam("singleEvents", true)
-        .queryParam("conferenceDataVersion", 1)
-        .queryParam("timeMin", from.withNano(0).toInstant().toString())
-        .queryParam("timeMax", to.withNano(0).toInstant().toString())
-        .queryParam("maxResults", 50)
-        .build())
-      .header(HttpHeaders.AUTHORIZATION, "Bearer " + authorizedClient.getAccessToken().getTokenValue())
-      .accept(MediaType.APPLICATION_JSON)
-      .retrieve()
-      .body(Object.class);
-
-    if (!(response instanceof Map<?, ?> body)) {
-      throw new IllegalStateException("Respuesta inesperada de Google Calendar");
-    }
-
-    Object itemsObj = body.get("items");
-    if (!(itemsObj instanceof List<?> items)) {
-      return List.of();
-    }
-
     List<CalendarClassEvent> result = new ArrayList<>();
+    String nextPageToken = null;
 
-    for (Object itemObj : items) {
-      if (!(itemObj instanceof Map<?, ?> item)) {
-        continue;
+    do {
+      String pageToken = nextPageToken;
+      Object response = restClient.get()
+        .uri(uriBuilder -> {
+          uriBuilder
+            .path("/calendar/v3/calendars/{calendarId}/events")
+            .queryParam("singleEvents", true)
+            .queryParam("orderBy", "startTime")
+            .queryParam("conferenceDataVersion", 1)
+            .queryParam("timeMin", from.withNano(0).toInstant().toString())
+            .queryParam("timeMax", to.withNano(0).toInstant().toString())
+            .queryParam("maxResults", 2500);
+
+          if (pageToken != null) {
+            uriBuilder.queryParam("pageToken", pageToken);
+          }
+          return uriBuilder.build(calendarId);
+        })
+        .header(HttpHeaders.AUTHORIZATION, "Bearer " + authorizedClient.getAccessToken().getTokenValue())
+        .accept(MediaType.APPLICATION_JSON)
+        .retrieve()
+        .body(Object.class);
+
+      if (!(response instanceof Map<?, ?> body)) {
+        throw new IllegalStateException("Respuesta inesperada de Google Calendar");
       }
 
-      String id = asString(item.get("id"));
-      String title = asString(item.get("summary"));
-      String description = asString(item.get("description"));
-      String location = asString(item.get("location"));
-      String hangoutLink = asString(item.get("hangoutLink"));
-      String meetingUrl = meetingUrlExtractor.extract(
-        title,
-        description,
-        location,
-        hangoutLink,
-        item.get("conferenceData")
-      );
+      Object itemsObj = body.get("items");
+      if (itemsObj instanceof List<?> items) {
+        for (Object itemObj : items) {
+          if (!(itemObj instanceof Map<?, ?> item)) {
+            continue;
+          }
 
-      OffsetDateTime startAt = extractDateTime(item.get("start"));
-      OffsetDateTime endAt = extractDateTime(item.get("end"));
+          String id = asString(item.get("id"));
+          String title = asString(item.get("summary"));
+          String description = asString(item.get("description"));
+          String location = asString(item.get("location"));
+          String hangoutLink = asString(item.get("hangoutLink"));
+          String meetingUrl = meetingUrlExtractor.extract(
+            title,
+            description,
+            location,
+            hangoutLink,
+            item.get("conferenceData")
+          );
 
-      if (id == null || title == null || startAt == null || endAt == null) {
-        continue;
+          OffsetDateTime startAt = extractDateTime(item.get("start"));
+          OffsetDateTime endAt = extractDateTime(item.get("end"));
+
+          if (id == null || title == null || startAt == null || endAt == null) {
+            continue;
+          }
+
+          if (shouldSkipEvent(title)) {
+            continue;
+          }
+
+          result.add(new CalendarClassEvent(
+            calendarId,
+            id,
+            title,
+            description,
+            meetingUrl,
+            startAt,
+            endAt,
+            consultoraNombre
+          ));
+        }
       }
 
-      if (shouldSkipEvent(title)) {
-        continue;
-      }
-
-      result.add(new CalendarClassEvent(
-        id,
-        title,
-        description,
-        meetingUrl,
-        startAt,
-        endAt,
-        "Accenture"
-      ));
-    }
+      nextPageToken = asString(body.get("nextPageToken"));
+    } while (nextPageToken != null && !nextPageToken.isBlank());
 
     return result;
   }
@@ -120,6 +134,7 @@ public class GoogleCalendarEventFetcher {
 
     return normalized.contains("cumple")
       || normalized.contains("contenido")
+      || normalized.contains("lanzam")
       || normalized.contains("facturar")
       || normalized.equals("mamá")
       || normalized.equals("juanpi")

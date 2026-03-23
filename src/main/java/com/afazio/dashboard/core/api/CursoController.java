@@ -1,6 +1,8 @@
 package com.afazio.dashboard.core.api;
 
 import com.afazio.dashboard.core.application.CrearCursoCommand;
+import com.afazio.dashboard.core.application.ActualizarCursoCommand;
+import com.afazio.dashboard.core.application.ActualizarCursoService;
 import com.afazio.dashboard.core.application.CrearCursoService;
 import com.afazio.dashboard.core.application.ListarCursosService;
 import org.springframework.http.HttpStatus;
@@ -14,13 +16,16 @@ public class CursoController {
 
   private final ListarCursosService listarCursosService;
   private final CrearCursoService crearCursoService;
+  private final ActualizarCursoService actualizarCursoService;
 
   public CursoController(
     ListarCursosService listarCursosService,
-    CrearCursoService crearCursoService
+    CrearCursoService crearCursoService,
+    ActualizarCursoService actualizarCursoService
   ) {
     this.listarCursosService = listarCursosService;
     this.crearCursoService = crearCursoService;
+    this.actualizarCursoService = actualizarCursoService;
   }
 
   @GetMapping
@@ -32,5 +37,13 @@ public class CursoController {
   @ResponseStatus(HttpStatus.CREATED)
   public CursoResponse crear(@RequestBody CrearCursoCommand command) {
     return crearCursoService.ejecutar(command);
+  }
+
+  @PutMapping("/{id}")
+  public CursoResponse actualizar(
+    @PathVariable Long id,
+    @RequestBody ActualizarCursoCommand command
+  ) {
+    return actualizarCursoService.ejecutar(id, command);
   }
 }

@@ -1,5 +1,6 @@
 package com.afazio.dashboard.core.application;
 
+import com.afazio.dashboard.calendar.application.GoogleCalendarProperties;
 import com.afazio.dashboard.core.api.ConsultoraResponse;
 import com.afazio.dashboard.core.domain.Consultora;
 import com.afazio.dashboard.core.infrastructure.ConsultoraRepository;
@@ -10,9 +11,14 @@ import org.springframework.stereotype.Service;
 public class CrearConsultoraService {
 
   private final ConsultoraRepository consultoraRepository;
+  private final GoogleCalendarProperties googleCalendarProperties;
 
-  public CrearConsultoraService(ConsultoraRepository consultoraRepository) {
+  public CrearConsultoraService(
+    ConsultoraRepository consultoraRepository,
+    GoogleCalendarProperties googleCalendarProperties
+  ) {
     this.consultoraRepository = consultoraRepository;
+    this.googleCalendarProperties = googleCalendarProperties;
   }
 
   @Transactional
@@ -27,7 +33,7 @@ public class CrearConsultoraService {
     consultora.setDescripcion(command.descripcion());
     consultora.setActiva(true);
     consultora.setRequiereReporteExcel(command.requiereReporteExcel());
-    consultora.setGoogleCalendarId(command.googleCalendarId());
+    consultora.setGoogleCalendarId(googleCalendarProperties.calendarId());
 
     Consultora saved = consultoraRepository.save(consultora);
 
@@ -37,7 +43,7 @@ public class CrearConsultoraService {
         saved.getDescripcion(),
         saved.isActiva(),
         saved.isRequiereReporteExcel(),
-        saved.getGoogleCalendarId()
+        googleCalendarProperties.calendarId()
     );
   }
 }

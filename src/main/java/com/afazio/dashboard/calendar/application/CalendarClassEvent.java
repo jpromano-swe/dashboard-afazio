@@ -3,6 +3,7 @@ package com.afazio.dashboard.calendar.application;
 import java.time.OffsetDateTime;
 
 public record CalendarClassEvent(
+  String sourceCalendarId,
   String externalEventId,
   String title,
   String description,

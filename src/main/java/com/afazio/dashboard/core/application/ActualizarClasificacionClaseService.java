@@ -131,7 +131,7 @@ public class ActualizarClasificacionClaseService {
       clase.getGrupo(),
       clase.isFacturable(),
       clase.isClasificacionConfirmada(),
-      clase.getConsultora() != null ? clase.getConsultora().getNombre() : null,
+      ClaseDisplayNames.consultoraNombreVisible(clase),
       clase.getFechaInicio(),
       clase.getFechaFin(),
       clase.getDuracionMinutos(),

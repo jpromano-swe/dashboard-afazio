@@ -9,6 +9,8 @@ import com.afazio.dashboard.core.application.ListarClasesDelDiaService;
 import com.afazio.dashboard.core.application.ListarClasesPorPeriodoService;
 import com.afazio.dashboard.core.application.ListarClasesPendientesClasificacionService;
 import com.afazio.dashboard.core.application.MarcarClaseDictadaService;
+import com.afazio.dashboard.core.application.PurgarClasesCommand;
+import com.afazio.dashboard.core.application.PurgarClasesService;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -24,6 +26,7 @@ public class ClaseController {
   private final ActualizarClasificacionClaseService actualizarClasificacionClaseService;
   private final ActualizarEstadoClaseService actualizarEstadoClaseService;
   private final MarcarClaseDictadaService marcarClaseDictadaService;
+  private final PurgarClasesService purgarClasesService;
 
   public ClaseController(
     ListarClasesDelDiaService listarClasesDelDiaService,
@@ -31,7 +34,8 @@ public class ClaseController {
     ListarClasesPendientesClasificacionService listarClasesPendientesClasificacionService,
     ActualizarClasificacionClaseService actualizarClasificacionClaseService,
     ActualizarEstadoClaseService actualizarEstadoClaseService,
-    MarcarClaseDictadaService marcarClaseDictadaService
+    MarcarClaseDictadaService marcarClaseDictadaService,
+    PurgarClasesService purgarClasesService
   ) {
     this.listarClasesDelDiaService = listarClasesDelDiaService;
     this.listarClasesPorPeriodoService = listarClasesPorPeriodoService;
@@ -39,6 +43,7 @@ public class ClaseController {
     this.actualizarClasificacionClaseService = actualizarClasificacionClaseService;
     this.actualizarEstadoClaseService = actualizarEstadoClaseService;
     this.marcarClaseDictadaService = marcarClaseDictadaService;
+    this.purgarClasesService = purgarClasesService;
   }
 
   @GetMapping("/hoy")
@@ -52,9 +57,19 @@ public class ClaseController {
   @GetMapping
   public List<ClaseDelDiaResponse> listarPorPeriodo(
     @RequestParam LocalDate from,
-    @RequestParam LocalDate to
+    @RequestParam LocalDate to,
+    @RequestParam(required = false, defaultValue = "false") boolean soloClasificadas
   ) {
-    return listarClasesPorPeriodoService.ejecutar(from, to);
+    return listarClasesPorPeriodoService.ejecutar(from, to, soloClasificadas);
+  }
+
+  @GetMapping("/semana")
+  public List<ClaseDelDiaResponse> listarSemana(
+    @RequestParam LocalDate desde,
+    @RequestParam(required = false, defaultValue = "false") boolean soloClasificadas
+  ) {
+    LocalDate hasta = desde.plusDays(6);
+    return listarClasesPorPeriodoService.ejecutar(desde, hasta, soloClasificadas);
   }
 
   @GetMapping("/pendientes-clasificacion")
@@ -89,6 +104,11 @@ public class ClaseController {
   @PutMapping("/{id}/dictada")
   public ActualizacionEstadoClaseResponse marcarDictada(@PathVariable Long id) {
     return marcarClaseDictadaService.ejecutar(id);
+  }
+
+  @DeleteMapping("/purga")
+  public PurgarClasesResponse purgarPorTitulos(@RequestBody PurgarClasesCommand command) {
+    return purgarClasesService.ejecutar(command);
   }
 
 }

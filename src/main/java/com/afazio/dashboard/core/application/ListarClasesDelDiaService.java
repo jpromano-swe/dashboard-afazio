@@ -46,7 +46,7 @@ public class ListarClasesDelDiaService {
 
         return new ClaseDelDiaResponse(
           clase.getId(),
-          clase.getConsultora().getNombre(),
+          ClaseDisplayNames.consultoraNombreVisible(clase),
           clase.getTitulo(),
           clase.getDescripcion(),
           clase.getMeetingUrl(),

@@ -30,8 +30,10 @@ public class IngresoController {
   @GetMapping
   public IngresoPeriodoResponse calcularPorPeriodo(
     @RequestParam LocalDate from,
-    @RequestParam LocalDate to
+    @RequestParam LocalDate to,
+    @RequestParam(required = false) Long consultoraId,
+    @RequestParam(required = false) Long cursoId
   ) {
-    return calcularIngresosPorPeriodoService.ejecutar(from, to);
+    return calcularIngresosPorPeriodoService.ejecutar(from, to, consultoraId, cursoId);
   }
 }

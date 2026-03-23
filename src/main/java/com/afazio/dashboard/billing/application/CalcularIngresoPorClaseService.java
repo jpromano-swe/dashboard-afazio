@@ -1,6 +1,7 @@
 package com.afazio.dashboard.billing.application;
 
 import com.afazio.dashboard.billing.api.IngresoPorClaseResponse;
+import com.afazio.dashboard.core.application.ClaseDisplayNames;
 import com.afazio.dashboard.core.domain.Clase;
 import com.afazio.dashboard.core.domain.ClaseEstado;
 import com.afazio.dashboard.core.domain.TarifaConsultora;
@@ -48,12 +49,16 @@ public class CalcularIngresoPorClaseService {
 
     return new IngresoPorClaseResponse(
       clase.getId(),
-      clase.getConsultora().getNombre(),
+      clase.getCurso() != null ? clase.getCurso().getId() : null,
+      clase.getEmpresa(),
+      clase.getGrupo(),
+      ClaseDisplayNames.consultoraNombreVisible(clase),
       clase.getTitulo(),
       fechaClase,
       clase.getDuracionMinutos(),
       tarifa.getMontoPorHora(),
       tarifa.getMoneda(),
+      clase.isFacturable(),
       importeCalculado
     );
   }

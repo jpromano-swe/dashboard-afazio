@@ -31,7 +31,7 @@ public class ListarClasesPorPeriodoService {
   }
 
   @Transactional(readOnly = true)
-  public List<ClaseDelDiaResponse> ejecutar(LocalDate fromDate, LocalDate toDate) {
+  public List<ClaseDelDiaResponse> ejecutar(LocalDate fromDate, LocalDate toDate, boolean soloClasificadas) {
     if (fromDate == null || toDate == null) {
       throw new IllegalArgumentException("Las fechas from y to son obligatorias");
     }
@@ -43,7 +43,9 @@ public class ListarClasesPorPeriodoService {
     OffsetDateTime from = fromDate.atStartOfDay().atOffset(ZoneOffset.ofHours(-3));
     OffsetDateTime to = toDate.plusDays(1).atStartOfDay().atOffset(ZoneOffset.ofHours(-3)).minusNanos(1);
 
-    List<Clase> clases = claseRepository.findByFechaInicioBetweenOrderByFechaInicioAsc(from, to);
+    List<Clase> clases = claseRepository.findByFechaInicioBetweenOrderByFechaInicioAsc(from, to).stream()
+      .filter(clase -> !soloClasificadas || (clase.isClasificacionConfirmada() && clase.isFacturable()))
+      .toList();
 
     Map<Long, Asistencia> asistenciasPorClaseId = asistenciaRepository.findByClaseIn(clases).stream()
       .collect(Collectors.toMap(asistencia -> asistencia.getClase().getId(), Function.identity()));
@@ -54,7 +56,7 @@ public class ListarClasesPorPeriodoService {
 
         return new ClaseDelDiaResponse(
           clase.getId(),
-          clase.getConsultora().getNombre(),
+          ClaseDisplayNames.consultoraNombreVisible(clase),
           clase.getTitulo(),
           clase.getDescripcion(),
           clase.getMeetingUrl(),

@@ -14,6 +14,7 @@ public class StubCalendarProvider implements CalendarProvider {
   public List<CalendarClassEvent> getClassesBetween(OffsetDateTime from, OffsetDateTime to) {
     return List.of(
       new CalendarClassEvent(
+        "google-event-1-calendar",
         "google-event-1",
         "Curso A2 Accenture",
         "Clase inicial de prueba",
