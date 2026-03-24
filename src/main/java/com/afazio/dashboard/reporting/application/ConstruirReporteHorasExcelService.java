@@ -59,7 +59,8 @@ public class ConstruirReporteHorasExcelService {
     Map<String, AcumuladorFila> agrupado = new LinkedHashMap<>();
 
     for (Clase clase : clases) {
-      boolean sinClasificar = ClaseDisplayNames.esSinClasificar(clase);
+      String consultoraNombreVisible = ClaseDisplayNames.consultoraNombreVisible(clase);
+      boolean sinClasificar = ClaseDisplayNames.esNombreSinClasificar(consultoraNombreVisible);
       TarifaConsultora tarifa = sinClasificar
         ? null
         : obtenerTarifaVigenteService.ejecutar(

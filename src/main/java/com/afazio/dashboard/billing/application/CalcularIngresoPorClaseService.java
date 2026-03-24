@@ -37,7 +37,8 @@ public class CalcularIngresoPorClaseService {
     }
 
     LocalDate fechaClase = clase.getFechaInicio().toLocalDate();
-    boolean sinClasificar = ClaseDisplayNames.esSinClasificar(clase);
+    String consultoraNombreVisible = ClaseDisplayNames.consultoraNombreVisible(clase);
+    boolean sinClasificar = ClaseDisplayNames.esNombreSinClasificar(consultoraNombreVisible);
     TarifaConsultora tarifa = sinClasificar
       ? null
       : obtenerTarifaVigenteService.ejecutar(clase.getConsultora(), fechaClase);
@@ -55,7 +56,7 @@ public class CalcularIngresoPorClaseService {
       clase.getCurso() != null ? clase.getCurso().getId() : null,
       clase.getEmpresa(),
       clase.getGrupo(),
-      ClaseDisplayNames.consultoraNombreVisible(clase),
+      consultoraNombreVisible,
       clase.getTitulo(),
       fechaClase,
       clase.getDuracionMinutos(),
