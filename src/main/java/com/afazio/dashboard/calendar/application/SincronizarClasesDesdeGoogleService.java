@@ -81,7 +81,6 @@ public class SincronizarClasesDesdeGoogleService {
   private int sincronizarEvento(Consultora consultora, CalendarClassEvent event) {
     String normalizedEventId = normalizeGoogleEventId(event.sourceCalendarId(), event.externalEventId());
 
-    boolean isNewClase = false;
     Clase clase = claseRepository.findByGoogleEventId(normalizedEventId)
       .or(() -> claseRepository.findByGoogleEventId(event.externalEventId()))
       .orElseGet(() -> {
@@ -93,25 +92,26 @@ public class SincronizarClasesDesdeGoogleService {
         return nuevaClase;
       });
 
-    if (clase.getId() == null) {
-      isNewClase = true;
-    }
+    boolean isNewClase = clase.getId() == null;
+    boolean debeIntentarHeredarClasificacion = isNewClase || !clase.isClasificacionConfirmada();
 
-    if (isNewClase) {
-      aplicarClasificacionExistenteOValoresPorDefecto(clase, consultora);
+    // Populate the lookup keys first so recurring/title-based inheritance can work for new rows.
+    clase.setTitulo(event.title());
+    clase.setGoogleEventId(normalizedEventId);
+
+    if (debeIntentarHeredarClasificacion) {
+      aplicarClasificacionExistenteOValoresPorDefecto(clase, consultora, !isNewClase);
     }
 
     if (clase.getConsultora() == null) {
       clase.setConsultora(consultora);
     }
 
-    clase.setTitulo(event.title());
     clase.setDescripcion(truncate(event.description()));
     clase.setMeetingUrl(truncate(event.meetingUrl()));
     clase.setFechaInicio(event.startAt());
     clase.setFechaFin(event.endAt());
     clase.setDuracionMinutos((int) Duration.between(event.startAt(), event.endAt()).toMinutes());
-    clase.setGoogleEventId(normalizedEventId);
     clase.setEstado(ClaseEstado.PROGRAMADA);
     clase.setSincronizadaEn(OffsetDateTime.now());
 
@@ -119,7 +119,11 @@ public class SincronizarClasesDesdeGoogleService {
     return 1;
   }
 
-  private void aplicarClasificacionExistenteOValoresPorDefecto(Clase clase, Consultora consultora) {
+  private void aplicarClasificacionExistenteOValoresPorDefecto(
+    Clase clase,
+    Consultora consultora,
+    boolean preservarValoresExistentesSiNoEncuentraRelacionada
+  ) {
     buscarClaseClasificadaRelacionada(clase)
       .ifPresentOrElse(
         claseRelacionada -> {
@@ -131,7 +135,12 @@ public class SincronizarClasesDesdeGoogleService {
           clase.setClasificacionConfirmada(claseRelacionada.isClasificacionConfirmada());
         },
         () -> {
+          if (preservarValoresExistentesSiNoEncuentraRelacionada) {
+            return;
+          }
+
           clase.setCurso(null);
+          clase.setConsultora(consultora);
           clase.setEmpresa(null);
           clase.setGrupo(null);
           clase.setFacturable(true);

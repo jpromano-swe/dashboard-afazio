@@ -1,5 +1,6 @@
 package com.afazio.dashboard.calendar.api;
 
+import com.afazio.dashboard.calendar.application.CalendarSyncRangeResolver;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClient;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,24 +20,33 @@ import java.util.Map;
 public class GoogleCalendarSampleController {
 
   private final RestClient restClient;
+  private final CalendarSyncRangeResolver calendarSyncRangeResolver;
 
-  public GoogleCalendarSampleController(RestClient.Builder restClientBuilder) {
+  public GoogleCalendarSampleController(
+    RestClient.Builder restClientBuilder,
+    CalendarSyncRangeResolver calendarSyncRangeResolver
+  ) {
     this.restClient = restClientBuilder
       .baseUrl("https://www.googleapis.com")
       .build();
+    this.calendarSyncRangeResolver = calendarSyncRangeResolver;
   }
 
   @GetMapping("/google/calendar/sample")
   public List<Map<String, Object>> sample(
     @RegisteredOAuth2AuthorizedClient("google") OAuth2AuthorizedClient authorizedClient,
-    @RequestParam OffsetDateTime from,
-    @RequestParam OffsetDateTime to
+    @RequestParam(required = false) OffsetDateTime from,
+    @RequestParam(required = false) OffsetDateTime to,
+    @RequestParam(required = false) LocalDate fromDate,
+    @RequestParam(required = false) LocalDate toDate
   ) {
+    var range = calendarSyncRangeResolver.resolve(from, to, fromDate, toDate);
+
     Object response = restClient.get()
       .uri(uriBuilder -> uriBuilder
         .path("/calendar/v3/calendars/primary/events")
-        .queryParam("timeMin", from.withNano(0).toInstant().toString())
-        .queryParam("timeMax", to.withNano(0).toInstant().toString())
+        .queryParam("timeMin", range.from().withNano(0).toInstant().toString())
+        .queryParam("timeMax", range.to().withNano(0).toInstant().toString())
         .queryParam("singleEvents", true)
         .queryParam("maxResults", 50)
         .build())
