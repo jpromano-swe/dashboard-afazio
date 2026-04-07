@@ -56,7 +56,9 @@ public class SincronizarClasesService {
       clase.setFechaFin(event.endAt());
       clase.setDuracionMinutos((int) Duration.between(event.startAt(), event.endAt()).toMinutes());
       clase.setGoogleEventId(event.externalEventId());
-      clase.setEstado(ClaseEstado.PROGRAMADA);
+      if (esEstadoSincronizable(clase.getEstado())) {
+        clase.setEstado(ClaseEstado.PROGRAMADA);
+      }
       clase.setSincronizadaEn(OffsetDateTime.now());
 
       claseRepository.save(clase);
@@ -70,6 +72,7 @@ public class SincronizarClasesService {
     List<Clase> clasesFueraDelFeed = claseRepository.findByFechaInicioBetweenOrderByFechaInicioAsc(from, to).stream()
       .filter(clase -> clase.getGoogleEventId() != null && !clase.getGoogleEventId().isBlank())
       .filter(clase -> !idsPresentes.contains(clase.getGoogleEventId()))
+      .filter(clase -> esEstadoSincronizable(clase.getEstado()))
       .toList();
 
     if (!clasesFueraDelFeed.isEmpty()) {
@@ -83,5 +86,9 @@ public class SincronizarClasesService {
       ids.add(event.externalEventId());
     }
     return ids;
+  }
+
+  private boolean esEstadoSincronizable(ClaseEstado estado) {
+    return estado == null || estado == ClaseEstado.PROGRAMADA;
   }
 }
